@@ -1,7 +1,7 @@
 import requests, json
 from datetime import date
 
-class MarketCapApi():
+class CoinMarketCap():
 	def __init__(self, api_key, start=1, limit=5000, convert='EUR', price_min=1, price_max=5000):
 		self.api_key = api_key
 		self.start = start
@@ -46,13 +46,17 @@ class MarketCapApi():
 			self.refreshPricing()
 		return self.history[-1]['data']
 
-	def getLatestBySymbol(self, symbol, refresh=False):
+	def getLatestDataBySymbol(self, symbol, refresh=False):
 		if refresh:
 			self.refreshPricing()
 
 		for coin in self.history[-1]['data']:
 			if coin['symbol'] == symbol:
 				return coin
+
+	def getLatestPricingBySymbol(self, symbol, refresh=False):
+		coin = self.getLatestDataBySymbol(symbol, refresh)
+		return coin['quote'][self.convert]
 
 	def loadHistoryFromFile(self, file, getLatest=False):
 		try:
