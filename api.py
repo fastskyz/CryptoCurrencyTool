@@ -2,7 +2,7 @@ import requests, json
 from datetime import date
 
 class CoinMarketCap():
-	def __init__(self, api_key, start=1, limit=5000, convert='EUR', price_min=1, price_max=5000):
+	def __init__(self, api_key, start=1, limit=5000, convert='EUR', price_min=1, price_max=100000):
 		self.api_key = api_key
 		self.start = start
 		self.limit = limit
@@ -28,13 +28,13 @@ class CoinMarketCap():
 		self.history = []
 
 	def refreshPricing(self):
-		response = requests.get(self.url, parameters, headers=headers)
+		response = requests.get(self.url, self.parameters, headers=self.headers)
 		
 		latest_data = json.loads(response.text)
 		self.history.append(latest_data)
 
-		with open(f'history_{date.today("%d-%m-%Y")}_{self.convert}_{self.start}_{self.limit}.txt', 'w') as file:
-			file.write(response.text)
+		with open(f'prices/history_{date.today().strftime("%d-%m-%Y")}_{self.convert}_{self.start}_{self.limit}.txt', 'w') as file:
+			file.write(json.dumps(self.history))
 
 		print('Done! Data saved and loaded as most recent data.\n')
 
@@ -50,17 +50,20 @@ class CoinMarketCap():
 		if refresh:
 			self.refreshPricing()
 
-		for coin in self.history[-1]['data']:
+		for coin in self.getLatestData():
 			if coin['symbol'] == symbol:
 				return coin
 
 	def getLatestPricingBySymbol(self, symbol, refresh=False):
-		coin = self.getLatestDataBySymbol(symbol, refresh)
-		return coin['quote'][self.convert]
+		coin = self.getLatestDataBySymbol(symbol=symbol, refresh=refresh)
+		if coin:
+			return coin['quote'][self.convert]
+		else:
+			print('No matching coin found!')
 
 	def loadHistoryFromFile(self, file, getLatest=False):
 		try:
-			with open(file, 'r') as f:
+			with open(f'prices/{file}', 'r') as f:
 				self.history = json.loads(f.read())
 		except IOError:
 			print(f"File {file} seems inaccessible!")
@@ -70,4 +73,6 @@ class CoinMarketCap():
 			print(f'Done! Loaded history from {file} and refreshed latest data from api.')
 		else:
 			print(f'Done! Loaded history from {file}.')
+
+		print(f'Size of history is {len(self.history)}')
 
