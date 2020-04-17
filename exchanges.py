@@ -27,6 +27,11 @@ class Binance():
 
 		return Request(request_type, url, params=params, headers=headers).prepare()
 
+	def getBookBySymbol(self, symbol):
+		params = {'symbol': symbol}
+		response = get(f'{self.base_url}/api/v3/ticker/bookTicker', params=params, headers=self.headers)
+		return json.loads(response.text)
+
 	def testConnection(self):
 		test_url = f'{self.base_url}/api/v3/ping'
 		response = get(test_url)
@@ -38,25 +43,19 @@ class Binance():
 			print('Connecting to Binance failed!')
 
 
-	def testOrder(self, symbol, side, quantity=None, price=None):
+	def testOrder(self, symbol, side, quantity, price):
 		url = f'{self.base_url}/api/v3/order/test'
-
-		#print(symbol)
 
 		params = {
 			'symbol': symbol,
 			'side': side,
 			'type': 'limit',
 			'timeInForce': 'GTC',
+			'quantity': quantity,
+			'price': price,
 			'recvWindow': 5000,
 			'timestamp': self.current_milli_time(),
 		}
-
-		if quantity:
-			params['quantity'] = quantity
-
-		if price:
-			params['price'] = price
 
 		s = Session()
 		p = self.signedRequest(url, params, self.headers, 'POST')

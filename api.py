@@ -54,10 +54,10 @@ class CoinMarketCap():
 			if coin['symbol'] == symbol:
 				return coin
 
-	def getLatestPricingBySymbol(self, symbol, refresh=False):
+	def getLatestPriceBySymbol(self, symbol, refresh=False):
 		coin = self.getLatestDataBySymbol(symbol=symbol, refresh=refresh)
 		if coin:
-			return coin['quote'][self.convert]
+			return coin['quote'][self.convert]['price']
 		else:
 			print('No matching coin found!')
 
